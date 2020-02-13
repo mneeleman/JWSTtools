@@ -377,18 +377,18 @@ class ApplicationWindow(QtWidgets.QWidget):
 
     def update_linecolors(self):
         if self.QSOcolor.text() in mpl.colors.cnames.keys():
-            self.linecolors[0] = self.QSOcolor.text()
+            self.linecolor[0] = self.QSOcolor.text()
             self.update_figures()
         else:
             print(self.QSOcolor.text() + ' is not a valid color!')
-            self.QSOcolor.setText(self.linecolors[0])
+            self.QSOcolor.setText(self.linecolor[0])
 
         if self.Galcolor.text() in mpl.colors.cnames.keys():
-            self.linecolors[1] = self.Galcolor.text()
+            self.linecolor[1] = self.Galcolor.text()
             self.update_figures()
         else:
             print(self.Galcolor.text() + ' is not a valid color!')
-            self.Galcolor.setText(self.linecolors[1])
+            self.Galcolor.setText(self.linecolor[1])
         self.update_figures()
 
     def update_linescales(self):
