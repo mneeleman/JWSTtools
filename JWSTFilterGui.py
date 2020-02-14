@@ -252,12 +252,15 @@ class ApplicationWindow(QtWidgets.QWidget):
             self.NWfilter[3 * idx].stateChanged.connect(self.update_figures)
             self.NWfilter[3 * idx + 2].returnPressed.connect(
                     self.update_NWfiltercolor)
+        self.NWselectall = QtWidgets.QPushButton('Select all', self)
+        self.NWselectall.clicked.connect(self.update_NWselectall)
 
         # the layout
         layout = QtWidgets.QGridLayout()
         for idx in np.arange(len(self.NWfilters)):
             for idx2 in np.arange(3):
                 layout.addWidget(self.NWfilter[3 * idx + idx2], idx, idx2)
+        layout.addWidget(self.NWselectall, 3 * idx + 1, 0, 1, 2)
         self.NIRCamWfilter.setLayout(layout)
 
     def get_NMfilters_layout(self):
@@ -272,12 +275,15 @@ class ApplicationWindow(QtWidgets.QWidget):
             self.NMfilter[3 * idx].stateChanged.connect(self.update_figures)
             self.NMfilter[3 * idx + 2].returnPressed.connect(
                     self.update_NMfiltercolor)
+        self.NMselectall = QtWidgets.QPushButton('Select all', self)
+        self.NMselectall.clicked.connect(self.update_NMselectall)
 
         # the layout
         layout = QtWidgets.QGridLayout()
         for idx in np.arange(len(self.NMfilters)):
             for idx2 in np.arange(3):
                 layout.addWidget(self.NMfilter[3 * idx + idx2], idx, idx2)
+        layout.addWidget(self.NMselectall, 3 * idx + 1, 0, 1, 2)
         self.NIRCamMfilter.setLayout(layout)
 
     def get_NNfilters_layout(self):
@@ -292,12 +298,15 @@ class ApplicationWindow(QtWidgets.QWidget):
             self.NNfilter[3 * idx].stateChanged.connect(self.update_figures)
             self.NNfilter[3 * idx + 2].returnPressed.connect(
                     self.update_NNfiltercolor)
+        self.NNselectall = QtWidgets.QPushButton('Select all', self)
+        self.NNselectall.clicked.connect(self.update_NNselectall)
 
         # the layout
         layout = QtWidgets.QGridLayout()
         for idx in np.arange(len(self.NNfilters)):
             for idx2 in np.arange(3):
                 layout.addWidget(self.NNfilter[3 * idx + idx2], idx, idx2)
+        layout.addWidget(self.NNselectall, 3 * idx + 1, 0, 1, 2)
         self.NIRCamNfilter.setLayout(layout)
 
     def get_MIRIfilters_layout(self):
@@ -312,12 +321,15 @@ class ApplicationWindow(QtWidgets.QWidget):
             self.Mfilter[3 * idx].stateChanged.connect(self.update_figures)
             self.Mfilter[3 * idx + 2].returnPressed.connect(
                     self.update_Mfiltercolor)
+        self.Mfselectall = QtWidgets.QPushButton('Select all', self)
+        self.Mfselectall.clicked.connect(self.update_Mfselectall)
 
         # the layout
         layout = QtWidgets.QGridLayout()
         for idx in np.arange(len(self.Mfilters)):
             for idx2 in np.arange(3):
                 layout.addWidget(self.Mfilter[3 * idx + idx2], idx, idx2)
+        layout.addWidget(self.Mfselectall, 3 * idx + 1, 0, 1, 2)
         self.MIRIfilter.setLayout(layout)
 
     def get_MIRIspec_layout(self):
@@ -332,12 +344,15 @@ class ApplicationWindow(QtWidgets.QWidget):
             self.Mspec[3 * idx].stateChanged.connect(self.update_figures)
             self.Mspec[3 * idx + 2].returnPressed.connect(
                     self.update_Mspeccolor)
+        self.Msselectall = QtWidgets.QPushButton('Select all', self)
+        self.Msselectall.clicked.connect(self.update_Msselectall)
 
         # the layout
         layout = QtWidgets.QGridLayout()
         for idx in np.arange(len(self.Msmodes)):
             for idx2 in np.arange(3):
                 layout.addWidget(self.Mspec[3 * idx + idx2], idx, idx2)
+        layout.addWidget(self.Msselectall, 3 * idx + 1, 0, 1, 2)
         self.MIRIspec.setLayout(layout)
 
     def get_NIRSpec_layout(self):
@@ -352,12 +367,15 @@ class ApplicationWindow(QtWidgets.QWidget):
             self.Nspec[3 * idx].stateChanged.connect(self.update_figures)
             self.Nspec[3 * idx + 2].returnPressed.connect(
                     self.update_Nspeccolor)
+        self.Nsselectall = QtWidgets.QPushButton('Select all', self)
+        self.Nsselectall.clicked.connect(self.update_Nsselectall)
 
         # the layout
         layout = QtWidgets.QGridLayout()
         for idx in np.arange(len(self.Nsmodes)):
             for idx2 in np.arange(3):
                 layout.addWidget(self.Nspec[3 * idx + idx2], idx, idx2)
+        layout.addWidget(self.Nsselectall, 3 * idx + 1, 0, 1, 2)
         self.NIRSpec.setLayout(layout)
 
     def update_redshifts(self):
@@ -555,6 +573,66 @@ class ApplicationWindow(QtWidgets.QWidget):
                           ' is not a valid color!')
                     self.Nspec[3 * idx+2].setText('black')
                     self.update_figures()
+
+    def update_NWselectall(self):
+        if self.NWselectall.text() == 'Select all':
+            self.NWselectall.setText('Unselect all')
+            for idx in np.arange(len(self.NWfilters)):
+                self.NWfilter[3 * idx].setChecked(True)
+        else:
+            self.NWselectall.setText('Select all')
+            for idx in np.arange(len(self.NWfilters)):
+                self.NWfilter[3 * idx].setChecked(False)
+
+    def update_NMselectall(self):
+        if self.NMselectall.text() == 'Select all':
+            self.NMselectall.setText('Unselect all')
+            for idx in np.arange(len(self.NMfilters)):
+                self.NMfilter[3 * idx].setChecked(True)
+        else:
+            self.NMselectall.setText('Select all')
+            for idx in np.arange(len(self.NMfilters)):
+                self.NMfilter[3 * idx].setChecked(False)
+
+    def update_NNselectall(self):
+        if self.NNselectall.text() == 'Select all':
+            self.NNselectall.setText('Unselect all')
+            for idx in np.arange(len(self.NNfilters)):
+                self.NNfilter[3 * idx].setChecked(True)
+        else:
+            self.NNselectall.setText('Select all')
+            for idx in np.arange(len(self.NNfilters)):
+                self.NNfilter[3 * idx].setChecked(False)
+
+    def update_Mfselectall(self):
+        if self.Mfselectall.text() == 'Select all':
+            self.Mfselectall.setText('Unselect all')
+            for idx in np.arange(len(self.Mfilters)):
+                self.Mfilter[3 * idx].setChecked(True)
+        else:
+            self.Mfselectall.setText('Select all')
+            for idx in np.arange(len(self.Mfilters)):
+                self.Mfilter[3 * idx].setChecked(False)
+
+    def update_Msselectall(self):
+        if self.Msselectall.text() == 'Select all':
+            self.Msselectall.setText('Unselect all')
+            for idx in np.arange(len(self.Msmodes)):
+                self.Mspec[3 * idx].setChecked(True)
+        else:
+            self.NWselectall.setText('Select all')
+            for idx in np.arange(len(self.Msmodes)):
+                self.Mspec[3 * idx].setChecked(False)
+
+    def update_Nsselectall(self):
+        if self.Nsselectall.text() == 'Select all':
+            self.Nsselectall.setText('Unselect all')
+            for idx in np.arange(len(self.Nsmodes)):
+                self.Nspec[3 * idx].setChecked(True)
+        else:
+            self.Nsselectall.setText('Select all')
+            for idx in np.arange(len(self.Nsmodes)):
+                self.Nspec[3 * idx].setChecked(False)
 
     def update_figures(self):
 
