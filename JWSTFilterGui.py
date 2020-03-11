@@ -72,13 +72,15 @@ class ApplicationWindow(QtWidgets.QWidget):
         self.get_canvas2_layout()
         self.get_template_layout()
         self.get_filter_layout()
+        self.get_print_layout()
 
         # add to layout
         mainLayout = QtWidgets.QGridLayout()
-        mainLayout.addWidget(self.canvas1, 0, 0, 2, 3)
-        mainLayout.addWidget(self.canvas2, 2, 0, 2, 3)
-        mainLayout.addWidget(self.template, 0, 3, 1, 1)
-        mainLayout.addWidget(self.filter, 1, 3, 3, 1)
+        mainLayout.addWidget(self.canvas1, 0, 0, 4, 6)
+        mainLayout.addWidget(self.canvas2, 4, 0, 4, 6)
+        mainLayout.addWidget(self.template, 0, 6, 1, 1)
+        mainLayout.addWidget(self.filter, 1, 6, 6, 1)
+        mainLayout.addWidget(self.print, 7, 6, 1, 1)
         self.setLayout(mainLayout)
 
         # draw the intial figure
@@ -88,8 +90,9 @@ class ApplicationWindow(QtWidgets.QWidget):
         self.canvas1 = QtWidgets.QGroupBox('Canvas 1')
 
         # canvas 1
-        self.fig1 = FigureCanvas(Figure(figsize=(1, 1.5)))
+        self.fig1 = FigureCanvas(Figure(figsize=(0.5, 1.5)))
         self._ax1 = self.fig1.figure.subplots()
+        self.fig1.figure.subplots_adjust(0.15, 0.15, 0.95, 0.95)
 
         # range of canvas 1
         self.r1 = []
@@ -119,8 +122,9 @@ class ApplicationWindow(QtWidgets.QWidget):
         self.canvas2 = QtWidgets.QGroupBox('Canvas 2')
 
         # canvas 2
-        self.fig2 = FigureCanvas(Figure(figsize=(1, 1.5)))
+        self.fig2 = FigureCanvas(Figure(figsize=(0.5, 1.5)))
         self._ax2 = self.fig2.figure.subplots()
+        self.fig2.figure.subplots_adjust(0.15, 0.19, 0.95, 0.95)
 
         # range of canvas 2
         self.r2 = []
@@ -188,7 +192,7 @@ class ApplicationWindow(QtWidgets.QWidget):
 
     def get_Galtemplate_layout(self):
         self.Galtemplate = QtWidgets.QGroupBox('Galaxy Template')
-        self.Galplot = QtWidgets.QCheckBox('Plot', self)
+        self.Galplot = QtWidgets.QCheckBox('Plot template', self)
         self.Galz_label = QtWidgets.QLabel('z = ', self)
         self.Galz = QtWidgets.QLineEdit('{:5.4f}'.format(self.z[1]), self)
         self.Galcolor_label = QtWidgets.QLabel('Color: ', self)
@@ -196,7 +200,7 @@ class ApplicationWindow(QtWidgets.QWidget):
         self.Galscale_label = QtWidgets.QLabel('Scale factor: ', self)
         self.Galscale = QtWidgets.QLineEdit(
                 '{:5.2f}'.format(self.linescale[1], self))
-        self.Gallabels = QtWidgets.QCheckBox('Plot line labels', self)
+        self.Gallabels = QtWidgets.QCheckBox('Plot labels', self)
 
         self.Galplot.stateChanged.connect(self.update_figures)
         self.Galz.returnPressed.connect(self.update_redshifts)
@@ -377,6 +381,23 @@ class ApplicationWindow(QtWidgets.QWidget):
                 layout.addWidget(self.Nspec[3 * idx + idx2], idx, idx2)
         layout.addWidget(self.Nsselectall, 3 * idx + 1, 0, 1, 2)
         self.NIRSpec.setLayout(layout)
+
+    def get_print_layout(self):
+        self.print = QtWidgets.QGroupBox('Save figure')
+        self.savefile_label = QtWidgets.QLabel('File:', self)
+        self.savefile = QtWidgets.QLineEdit('./JWSTfilter.pdf', self)
+        self.savec1 = QtWidgets.QCheckBox('Canvas 1', self)
+        self.savec2 = QtWidgets.QCheckBox('Canvas 2', self)
+        self.save = QtWidgets.QPushButton('Save', self)
+        self.save.clicked.connect(self.save_figures)
+
+        layout = QtWidgets.QGridLayout()
+        layout.addWidget(self.savefile_label, 0, 0)
+        layout.addWidget(self.savefile, 0, 1, 1, 2)
+        layout.addWidget(self.savec1, 1, 0, 1, 1)
+        layout.addWidget(self.savec2, 1, 1, 1, 1)
+        layout.addWidget(self.save, 1, 2, 1, 1)
+        self.print.setLayout(layout)
 
     def update_redshifts(self):
         try:
@@ -636,61 +657,64 @@ class ApplicationWindow(QtWidgets.QWidget):
 
     def update_figures(self):
 
-        # clear figures
-        self._ax1.clear()
-        self._ax2.clear()
+        for axidx, ax in enumerate([self._ax1, self._ax2]):
+            self.update_canvas(ax, axidx)
+
+    def update_canvas(self, ax, axidx):
+        # clear figure
+        ax.clear()
 
         # plot templates
         if self.QSOplot.isChecked():
-            self.plot_qso()
+            self.plot_qso(ax, axidx)
         if self.Galplot.isChecked():
-            self.plot_galaxy()
+            self.plot_galaxy(ax, axidx)
 
         # plot filters
-        self.plot_filters()
+        self.plot_filters(ax)
 
         # define range, axis-label and draw
-        self._ax1.set_xlim(self.range1[0][0], self.range1[0][1])
-        self._ax1.set_ylim(self.range1[1][0], self.range1[1][1])
-        self._ax1.figure.canvas.draw()
+        if axidx == 0:
+            ax.set_xlim(self.range1[0][0], self.range1[0][1])
+            ax.set_ylim(self.range1[1][0], self.range1[1][1])
+            ax.figure.canvas.draw()
 
-        self._ax2.set_xlim(self.range2[0][0], self.range2[0][1])
-        self._ax2.set_ylim(self.range2[1][0], self.range2[1][1])
-        self._ax2.figure.canvas.draw()
+        if axidx == 1:
+            ax.set_xlim(self.range2[0][0], self.range2[0][1])
+            ax.set_ylim(self.range2[1][0], self.range2[1][1])
+            ax.figure.canvas.draw()
 
-    def plot_qso(self):
+        # Label the axis
+        ax.set_xlabel(r'Wavelength ($\mu$m)', fontsize=12, color='black')
+        ax.set_ylabel(r'Throughput', fontsize=12, color='black')
+
+    def plot_qso(self, ax, axidx):
         qso = ascii.read("templates/z75qso.dat")
         wave_mu = qso['lambda_mu'] / (1 + 7.5)
         wave_mu *= (1 + self.z[0])
         flux = qso['flux_mjy']
 
-        self._ax1.plot(wave_mu, flux * self.linescale[0], ls=self.linestyle[0],
-                       color=self.linecolor[0], alpha=self.linealpha[0],
-                       lw=self.linewidth[0])
-        self._ax2.plot(wave_mu, flux * self.linescale[0], ls=self.linestyle[0],
-                       color=self.linecolor[0], alpha=self.linealpha[0],
-                       lw=self.linewidth[0])
+        ax.plot(wave_mu, flux * self.linescale[0], ls=self.linestyle[0],
+                color=self.linecolor[0], alpha=self.linealpha[0],
+                lw=self.linewidth[0])
 
         if self.QSOlabels.isChecked():
-            self.add_lines(self.z[0], 0)
+            self.add_lines(ax, self.z[0], 0, axidx)
 
-    def plot_galaxy(self):
+    def plot_galaxy(self, ax, axidx):
         s99 = ascii.read("templates/starburst99_host_models_z75_lines.txt")
         wave_mu = s99['wave'] / (1 + 7.5)
         wave_mu *= (1 + self.z[1])
         flux = s99["300Myr_0.2"]
 
-        self._ax1.plot(wave_mu, flux * self.linescale[1], ls=self.linestyle[1],
-                       color=self.linecolor[1], alpha=self.linealpha[1],
-                       lw=self.linewidth[1])
-        self._ax2.plot(wave_mu, flux * self.linescale[1], ls=self.linestyle[1],
-                       color=self.linecolor[1], alpha=self.linealpha[1],
-                       lw=self.linewidth[1])
+        ax.plot(wave_mu, flux * self.linescale[1], ls=self.linestyle[1],
+                color=self.linecolor[1], alpha=self.linealpha[1],
+                lw=self.linewidth[1])
 
         if self.Gallabels.isChecked():
-            self.add_lines(self.z[1], 1)
+            self.add_lines(ax, self.z[1], 1, axidx)
 
-    def plot_filters(self):
+    def plot_filters(self, ax):
 
         # NIRCam-Wide
         for idx, filt in enumerate(self.NWfilters):
@@ -704,12 +728,9 @@ class ApplicationWindow(QtWidgets.QWidget):
                     color = plt.cm.Spectral_r(self.NWfcolors[idx])
                 else:
                     color = self.NWfcolors[idx]
-                self._ax1.fill_between(data['microns'], data['throughput'],
-                                       edgecolor=color, facecolor=color,
-                                       alpha=self.filteralpha)
-                self._ax2.fill_between(data['microns'], data['throughput'],
-                                       edgecolor=color, facecolor=color,
-                                       alpha=self.filteralpha)
+                ax.fill_between(data['microns'], data['throughput'],
+                                edgecolor=color, facecolor=color,
+                                alpha=self.filteralpha)
 
         # NIRCam-Medium
         for idx, filt in enumerate(self.NMfilters):
@@ -723,12 +744,9 @@ class ApplicationWindow(QtWidgets.QWidget):
                     color = plt.cm.Spectral_r(self.NMfcolors[idx])
                 else:
                     color = self.NMfcolors[idx]
-                self._ax1.fill_between(data['microns'], data['throughput'],
-                                       edgecolor=color, facecolor=color,
-                                       alpha=self.filteralpha)
-                self._ax2.fill_between(data['microns'], data['throughput'],
-                                       edgecolor=color, facecolor=color,
-                                       alpha=self.filteralpha)
+                ax.fill_between(data['microns'], data['throughput'],
+                                edgecolor=color, facecolor=color,
+                                alpha=self.filteralpha)
 
         # NIRCam-Narrow
         for idx, filt in enumerate(self.NNfilters):
@@ -742,12 +760,9 @@ class ApplicationWindow(QtWidgets.QWidget):
                     color = plt.cm.Spectral_r(self.NNfcolors[idx])
                 else:
                     color = self.NNfcolors[idx]
-                self._ax1.fill_between(data['microns'], data['throughput'],
-                                       edgecolor=color, facecolor=color,
-                                       alpha=self.filteralpha)
-                self._ax2.fill_between(data['microns'], data['throughput'],
-                                       edgecolor=color, facecolor=color,
-                                       alpha=self.filteralpha)
+                ax.fill_between(data['microns'], data['throughput'],
+                                edgecolor=color, facecolor=color,
+                                alpha=self.filteralpha)
 
         # MIRI
         for idx, filt in enumerate(self.Mfilters):
@@ -760,14 +775,9 @@ class ApplicationWindow(QtWidgets.QWidget):
                     color = plt.cm.Spectral_r(self.Mfcolors[idx])
                 else:
                     color = self.Mfcolors[idx]
-                self._ax1.fill_between(data['angstrom'] / 1e4,
-                                       data['throughput'],
-                                       edgecolor=color, facecolor=color,
-                                       alpha=self.filteralpha)
-                self._ax2.fill_between(data['angstrom'] / 1e4,
-                                       data['throughput'],
-                                       edgecolor=color, facecolor=color,
-                                       alpha=self.filteralpha)
+                ax.fill_between(data['angstrom'] / 1e4, data['throughput'],
+                                edgecolor=color, facecolor=color,
+                                alpha=self.filteralpha)
 
         # MIRI - spec
         for idx, filt in enumerate(self.Msmodes):
@@ -776,16 +786,11 @@ class ApplicationWindow(QtWidgets.QWidget):
                     color = plt.cm.Spectral_r(self.Mscolors[idx])
                 else:
                     color = self.Mscolors[idx]
-                self._ax1.axvspan(self.Msdata[idx][0], self.Msdata[idx][1],
-                                  ymin=(0.1 + 0.07 * np.mod(idx, 4)),
-                                  ymax=(0.15 + 0.07 * np.mod(idx, 4)),
-                                  edgecolor=color, facecolor=color,
-                                  alpha=self.filteralpha)
-                self._ax2.axvspan(self.Msdata[idx][0], self.Msdata[idx][1],
-                                  ymin=(0.1 + 0.05 * np.mod(idx, 4)),
-                                  ymax=(0.15 + 0.07 * np.mod(idx, 4)),
-                                  edgecolor=color, facecolor=color,
-                                  alpha=self.filteralpha)
+                ax.axvspan(self.Msdata[idx][0], self.Msdata[idx][1],
+                           ymin=(0.1 + 0.07 * np.mod(idx, 4)),
+                           ymax=(0.15 + 0.07 * np.mod(idx, 4)),
+                           edgecolor=color, facecolor=color,
+                           alpha=self.filteralpha)
 
         # NIRSPEC
         for idx, filt in enumerate(self.Nsmodes):
@@ -794,18 +799,13 @@ class ApplicationWindow(QtWidgets.QWidget):
                     color = plt.cm.Spectral_r(self.Nscolors[idx])
                 else:
                     color = self.Nscolors[idx]
-                self._ax1.axvspan(self.Nsdata[idx][0], self.Nsdata[idx][1],
-                                  ymin=(0.1 + 0.07 * idx),
-                                  ymax=(0.15 + 0.07 * idx),
-                                  edgecolor=color, facecolor=color,
-                                  alpha=self.filteralpha)
-                self._ax2.axvspan(self.Nsdata[idx][0], self.Nsdata[idx][1],
-                                  ymin=(0.1 + 0.05 * idx),
-                                  ymax=(0.15 + 0.07 * idx),
-                                  edgecolor=color, facecolor=color,
-                                  alpha=self.filteralpha)
+                ax.axvspan(self.Nsdata[idx][0], self.Nsdata[idx][1],
+                           ymin=(0.1 + 0.07 * idx),
+                           ymax=(0.15 + 0.07 * idx),
+                           edgecolor=color, facecolor=color,
+                           alpha=self.filteralpha)
 
-    def add_lines(self, z, idx):
+    def add_lines(self, ax, z, idx, axidx):
         line_label = [r'Ly$\alpha$+N$\,$V', r'C$\,$IV', r'Mg$\,$II',
                       r'C$\,$III] + Fe$\,$III',
                       r'H$\,\beta$' + r'+ [O$\,$III]', r'H$\, \alpha$',
@@ -815,16 +815,47 @@ class ApplicationWindow(QtWidgets.QWidget):
                      1905.97 / 1e4, 4835 / 1e4 + 0.01, 6564.93 / 1e4,
                      1.87,  1.28, 1.06]
         for label, wave in zip(line_label, line_wave):
-            if (wave * (1 + z) > self.range1[0][0] and
+            if (wave * (1 + z) > self.range1[0][0] and axidx == 0 and
                     wave * (1 + z) < self.range1[0][1]):
-                self._ax1.text(wave * (1 + z), 0.9 * self.range1[1][1],
-                               label, color=self.linecolor[idx], fontsize=8,
-                               ha='center')
-            if (wave * (1 + z) > self.range2[0][0] and
+                ax.text(wave * (1 + z), 0.9 * self.range1[1][1],
+                        label, color=self.linecolor[idx], fontsize=8,
+                        ha='center')
+            if (wave * (1 + z) > self.range2[0][0] and axidx == 1 and
                     wave * (1 + z) < self.range2[0][1]):
-                self._ax2.text(wave * (1 + z), 0.9 * self.range1[1][1],
-                               label, color=self.linecolor[idx], fontsize=8,
-                               ha='center')
+                ax.text(wave * (1 + z), 0.9 * self.range1[1][1],
+                        label, color=self.linecolor[idx], fontsize=8,
+                        ha='center')
+
+    def save_figures(self):
+
+        if self.savec1.isChecked() and self.savec2.isChecked():
+            fig, axs = plt.subplots(2, 1, figsize=(8, 8))
+        else:
+            fig, axs = plt.subplots(1, 1, figsize=(8, 5))
+
+        if self.savec1.isChecked():
+            try:
+                ax = axs[0]
+            except TypeError:
+                ax = axs
+            self.update_canvas(ax, 0)
+
+        if self.savec2.isChecked():
+            try:
+                ax = axs[1]
+            except TypeError:
+                ax = axs
+            self.update_canvas(ax, 1)
+
+        if self.QSOplot.isChecked():
+            fig.text(0.29, 0.93, 'QSO at z = {:5.4f}'.format(self.z[0]),
+                     color=self.linecolor[0], fontsize=20, ha='center')
+        if self.Galplot.isChecked():
+            fig.text(0.71, 0.93, 'Galaxy at z = {:5.4f}'.format(self.z[1]),
+                     color=self.linecolor[1], fontsize=20, ha='center')
+
+        plt.savefig(self.savefile.text(), format='pdf', dpi=300)
+        plt.close('all')
 
 
 def main():
